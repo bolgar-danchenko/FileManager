@@ -62,10 +62,7 @@ class DocumentsViewController: UIViewController, UITableViewDataSource, UITableV
 
         setupNavigationController()
         setupTableView()
-    }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
         files = fileManagerService.contentsOfDirectory(currentDirectory: rootURL)
     }
 
