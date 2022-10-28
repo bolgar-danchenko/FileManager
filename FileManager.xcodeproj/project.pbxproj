@@ -13,6 +13,7 @@
 		B5AED39329045749001B750C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B5AED39129045749001B750C /* LaunchScreen.storyboard */; };
 		B5AED39C29045762001B750C /* FileManagerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5AED39A2904575F001B750C /* FileManagerService.swift */; };
 		B5AED39D29045762001B750C /* DocumentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5AED39B29045760001B750C /* DocumentsViewController.swift */; };
+		B5FDBCE1290BAC6C003E4804 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FDBCE0290BAC6C003E4804 /* SettingsViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		B5AED39429045749001B750C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B5AED39A2904575F001B750C /* FileManagerService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileManagerService.swift; sourceTree = "<group>"; };
 		B5AED39B29045760001B750C /* DocumentsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DocumentsViewController.swift; sourceTree = "<group>"; };
+		B5FDBCE0290BAC6C003E4804 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +61,7 @@
 				B5AED38629045743001B750C /* AppDelegate.swift */,
 				B5AED38829045743001B750C /* SceneDelegate.swift */,
 				B5AED39B29045760001B750C /* DocumentsViewController.swift */,
+				B5FDBCE0290BAC6C003E4804 /* SettingsViewController.swift */,
 				B5AED39A2904575F001B750C /* FileManagerService.swift */,
 				B5AED38F29045749001B750C /* Assets.xcassets */,
 				B5AED39129045749001B750C /* LaunchScreen.storyboard */,
@@ -140,6 +143,7 @@
 				B5AED39D29045762001B750C /* DocumentsViewController.swift in Sources */,
 				B5AED38729045743001B750C /* AppDelegate.swift in Sources */,
 				B5AED38929045743001B750C /* SceneDelegate.swift in Sources */,
+				B5FDBCE1290BAC6C003E4804 /* SettingsViewController.swift in Sources */,
 				B5AED39C29045762001B750C /* FileManagerService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
