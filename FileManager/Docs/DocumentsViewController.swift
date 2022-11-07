@@ -7,15 +7,17 @@
 
 import UIKit
 
-class DocumentsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+class DocumentsViewController: UIViewController, UINavigationControllerDelegate {
 
     // MARK: - Properties
+
+    static var isLoggedIn = false
 
     let fileManagerService = FileManagerService()
 
     var rootURL: URL
 
-    var files: [URL] = []
+    public var files: [URL] = []
 
     var directoryTitle: String
 
@@ -56,17 +58,44 @@ class DocumentsViewController: UIViewController, UITableViewDataSource, UITableV
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
         self.title = directoryTitle
         view.backgroundColor = .white
 
         setupNavigationController()
         setupTableView()
 
+        checkAuth()
+
         files = fileManagerService.contentsOfDirectory(currentDirectory: rootURL)
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        sortFiles()
+    }
+
     // MARK: - Setup View
+
+    private func checkAuth() {
+        if DocumentsViewController.isLoggedIn {
+            return
+        } else {
+            let vc = PasswordViewController()
+            let nav = UINavigationController(rootViewController: vc)
+            nav.modalPresentationStyle = .fullScreen
+            present(nav, animated: true)
+        }
+    }
+
+    private func sortFiles() {
+        if UserDefaults.standard.bool(forKey: "sorting") {
+            files = files.sorted(by: { $0.lastPathComponent < $1.lastPathComponent })
+        } else {
+            files = files.sorted(by: { $1.lastPathComponent < $0.lastPathComponent })
+        }
+
+        listOfFiles.reloadData()
+    }
 
     func setupNavigationController() {
         navigationController?.navigationBar.prefersLargeTitles = true
@@ -100,7 +129,50 @@ class DocumentsViewController: UIViewController, UITableViewDataSource, UITableV
         ])
     }
 
-    // MARK: - TableView
+    // MARK: - Actions
+
+    @objc func createDirectory() {
+        let alert = UIAlertController(
+            title: "Add Folder",
+            message: nil,
+            preferredStyle: .alert
+        )
+        alert.addTextField { (textField) in
+            textField.placeholder = "New Folder"
+        }
+        alert.addAction(UIAlertAction(
+            title: "Cancel",
+            style: .cancel
+        ))
+        alert.addAction(UIAlertAction(
+            title: "Add",
+            style: .default,
+            handler: { [self] _ in
+                guard let name = alert.textFields?[0].text else { return }
+                fileManagerService.createDirectory(
+                    currentDirectory: rootURL,
+                    newDirectoryName: name
+                )
+                files = fileManagerService.contentsOfDirectory(currentDirectory: rootURL)
+                self.sortFiles()
+                self.listOfFiles.reloadData()
+            }))
+        self.present(
+            alert,
+            animated: true,
+            completion: nil
+        )
+    }
+
+    @objc func createFile() {
+        picker.delegate = self
+        present(picker, animated: true)
+    }
+}
+
+// MARK: - TableView
+
+extension DocumentsViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(
         _ tableView: UITableView,
@@ -109,24 +181,29 @@ class DocumentsViewController: UIViewController, UITableViewDataSource, UITableV
         return files.count
     }
 
-    func tableView(
-        _ tableView: UITableView,
-        cellForRowAt indexPath: IndexPath
-    ) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(
-            withIdentifier: "Cell",
-            for: indexPath
-        )
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
+        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "Cell")
         cell.textLabel?.textColor = .black
         cell.textLabel?.text = "\(self.files[indexPath.row].lastPathComponent)"
 
         do {
             let fileType = try FileManager.default.attributesOfItem(atPath: "\(self.files[indexPath.row].path)")[FileAttributeKey.type]
+
+            let fileSize = try FileManager.default.attributesOfItem(atPath: "\(self.files[indexPath.row].path)")[FileAttributeKey.size] as? UInt64
+
             if fileType as! FileAttributeType == FileAttributeType.typeDirectory {
                 cell.accessoryType = .disclosureIndicator
             } else {
                 cell.accessoryType = .none
             }
+
+            if UserDefaults.standard.bool(forKey: "fileSize") {
+                cell.detailTextLabel?.text = "\(ByteCountFormatter.string(fromByteCount: Int64(fileSize ?? 0), countStyle: .file))"
+            } else {
+                cell.detailTextLabel?.text = nil
+            }
+
         } catch {
             print(error.localizedDescription)
         }
@@ -154,11 +231,8 @@ class DocumentsViewController: UIViewController, UITableViewDataSource, UITableV
         tableView.deselectRow(at: indexPath, animated: true)
     }
 
-    func tableView(
-        _ tableView: UITableView,
-        commit editingStyle: UITableViewCell.EditingStyle,
-        forRowAt indexPath: IndexPath
-    ) {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+
         if editingStyle == .delete {
             let url = files[indexPath.row]
             files.remove(at: indexPath.row)
@@ -172,8 +246,11 @@ class DocumentsViewController: UIViewController, UITableViewDataSource, UITableV
             )
         }
     }
+}
 
-    // MARK: - Picker Controller
+// MARK: - Picker Controller
+
+extension DocumentsViewController: UIImagePickerControllerDelegate {
 
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         let image = info[.imageURL] as! URL
@@ -183,45 +260,7 @@ class DocumentsViewController: UIViewController, UITableViewDataSource, UITableV
             newFile: image
         )
         files = fileManagerService.contentsOfDirectory(currentDirectory: rootURL)
+        self.sortFiles()
         self.listOfFiles.reloadData()
-    }
-
-    // MARK: - Actions
-
-    @objc func createDirectory() {
-        let alert = UIAlertController(
-            title: "Add Folder",
-            message: nil,
-            preferredStyle: .alert
-        )
-        alert.addTextField { (textField) in
-            textField.placeholder = "New Folder"
-        }
-        alert.addAction(UIAlertAction(
-            title: "Cancel",
-            style: .cancel
-        ))
-        alert.addAction(UIAlertAction(
-            title: "Add",
-            style: .default,
-            handler: { [self] _ in
-            guard let name = alert.textFields?[0].text else { return }
-            fileManagerService.createDirectory(
-                currentDirectory: rootURL,
-                newDirectoryName: name
-            )
-            files = fileManagerService.contentsOfDirectory(currentDirectory: rootURL)
-            self.listOfFiles.reloadData()
-        }))
-        self.present(
-            alert,
-            animated: true,
-            completion: nil
-        )
-    }
-
-    @objc func createFile() {
-        picker.delegate = self
-        present(picker, animated: true)
     }
 }

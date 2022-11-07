@@ -23,7 +23,7 @@ struct SettingsSwitchOption {
     let title: String
     let icon: UIImage?
     let iconBackgroundColor: UIColor
-    let handler: (() -> Void)
+    let action: Selector
     var isOn: Bool
 }
 
@@ -41,6 +41,8 @@ class SettingsViewController: UIViewController {
     // MARK: - Properties & Subviews
 
     var models = [Section]()
+
+    let keychainService = KeychainService()
 
     private let tableView: UITableView = {
         let table = UITableView(frame: .zero, style: .grouped)
@@ -66,24 +68,30 @@ class SettingsViewController: UIViewController {
 
     // MARK: - Setup View
 
+    private func isSortingSwitchOn() -> Bool {
+        UserDefaults.standard.bool(forKey: "sorting")
+    }
+
+    private func isSizeSwitchOn() -> Bool {
+        UserDefaults.standard.bool(forKey: "fileSize")
+    }
+
     private func configure() {
         models.append(Section(title: "Appearance", options: [
             .switchCell(model: SettingsSwitchOption(
-                title: "Sorting",
+                title: "Sorting (A-Z)",
                 icon: UIImage(systemName: "line.3.horizontal.decrease.circle"),
                 iconBackgroundColor: .systemBlue,
-                handler: {
-                    print("Sorting selected")
-                }, isOn: true
+                action: #selector(sortingSwitchChanged(_:)),
+                isOn: isSortingSwitchOn()
             )),
 
             .switchCell(model: SettingsSwitchOption(
                 title: "Show File Size",
                 icon: UIImage(systemName: "doc.badge.ellipsis"),
                 iconBackgroundColor: .systemGreen,
-                handler: {
-                    print("Show File Size selected")
-                }, isOn: true
+                action: #selector(sizeSwitchChanged(_:)),
+                isOn: isSizeSwitchOn()
             )),
         ]))
 
@@ -94,10 +102,21 @@ class SettingsViewController: UIViewController {
                 title: "Change Password",
                 icon: UIImage(systemName: "key"),
                 iconBackgroundColor: .systemRed) {
-                print("Change Password selected"
-                )
+                    self.keychainService.removePassword()
+                    let vc = PasswordViewController()
+                    let nav = UINavigationController(rootViewController: vc)
+                    nav.modalPresentationStyle = .fullScreen
+                    self.present(nav, animated: true)
             })
         ]))
+    }
+
+    @objc func sortingSwitchChanged(_ sender: UISwitch!) {
+        // Я не понимаю, почему так, но вместо этой функции работает одноимённая из SwitchTableViewCell.
+    }
+
+    @objc func sizeSwitchChanged(_ sender: UISwitch!) {
+        // Я не понимаю, почему так, но вместо этой функции работает одноимённая из SwitchTableViewCell.
     }
 }
 
@@ -129,7 +148,7 @@ extension SettingsViewController: UITableViewDelegate, UITableViewDataSource {
             ) as? SettingsTableViewCell else {
                 return UITableViewCell()
             }
-            cell.configure(with: model)
+            cell.configureSettingsCell(with: model)
             return cell
         case .switchCell(let model):
 
@@ -139,7 +158,7 @@ extension SettingsViewController: UITableViewDelegate, UITableViewDataSource {
             ) as? SwitchTableViewCell else {
                 return UITableViewCell()
             }
-            cell.configure(with: model)
+            cell.configureSwitchCell(with: model)
             return cell
         }
     }
@@ -150,8 +169,8 @@ extension SettingsViewController: UITableViewDelegate, UITableViewDataSource {
         switch type.self {
         case .staticCell(let model):
             model.handler()
-        case .switchCell(let model):
-            model.handler()
+        case .switchCell(_):
+            return
         }
     }
 }

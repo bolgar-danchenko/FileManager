@@ -75,7 +75,7 @@ class SettingsTableViewCell: UITableViewCell {
         iconContaier.backgroundColor = nil
     }
 
-    public func configure(with model: SettingsOptions) {
+    public func configureSettingsCell(with model: SettingsOptions) {
         label.text = model.title
         iconImageView.image = model.icon
         iconContaier.backgroundColor = model.iconBackgroundColor

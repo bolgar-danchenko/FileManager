@@ -37,7 +37,6 @@ class SwitchTableViewCell: UITableViewCell {
         return mySwitch
     }()
 
-
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         contentView.addSubview(label)
@@ -89,10 +88,21 @@ class SwitchTableViewCell: UITableViewCell {
         mySwitch.isOn = false
     }
 
-    public func configure(with model: SettingsSwitchOption) {
+    public func configureSwitchCell(with model: SettingsSwitchOption) {
         label.text = model.title
         iconImageView.image = model.icon
         iconContaier.backgroundColor = model.iconBackgroundColor
         mySwitch.isOn = model.isOn
+        mySwitch.addTarget(self, action: model.action, for: .valueChanged)
+    }
+
+    // MARK: - Switch Actions
+
+    @objc public func sortingSwitchChanged(_ sender: UISwitch!) {
+        sender.isOn ? UserDefaults.standard.set(true, forKey: "sorting") : UserDefaults.standard.set(false, forKey: "sorting")
+    }
+
+    @objc public func sizeSwitchChanged(_ sender: UISwitch!) {
+        sender.isOn ? UserDefaults.standard.set(true, forKey: "fileSize") : UserDefaults.standard.set(false, forKey: "fileSize")
     }
 }
