@@ -82,7 +82,7 @@ class SettingsViewController: UIViewController {
                 title: "Sorting (A-Z)",
                 icon: UIImage(systemName: "line.3.horizontal.decrease.circle"),
                 iconBackgroundColor: .systemBlue,
-                action: #selector(sortingSwitchChanged(_:)),
+                action: #selector(SwitchTableViewCell.sortingSwitchChanged(_:)),
                 isOn: isSortingSwitchOn()
             )),
 
@@ -90,7 +90,7 @@ class SettingsViewController: UIViewController {
                 title: "Show File Size",
                 icon: UIImage(systemName: "doc.badge.ellipsis"),
                 iconBackgroundColor: .systemGreen,
-                action: #selector(sizeSwitchChanged(_:)),
+                action: #selector(SwitchTableViewCell.sizeSwitchChanged(_:)),
                 isOn: isSizeSwitchOn()
             )),
         ]))
@@ -109,14 +109,6 @@ class SettingsViewController: UIViewController {
                     self.present(nav, animated: true)
             })
         ]))
-    }
-
-    @objc func sortingSwitchChanged(_ sender: UISwitch!) {
-        // Я не понимаю, почему так, но вместо этой функции работает одноимённая из SwitchTableViewCell.
-    }
-
-    @objc func sizeSwitchChanged(_ sender: UISwitch!) {
-        // Я не понимаю, почему так, но вместо этой функции работает одноимённая из SwitchTableViewCell.
     }
 }
 

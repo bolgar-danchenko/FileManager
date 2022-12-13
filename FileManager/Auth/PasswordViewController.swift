@@ -34,7 +34,27 @@ class PasswordViewController: UIViewController {
 
     // MARK: - Subviews
 
-    private let passwordField: UITextField = {
+    private lazy var titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Welcome to FileManager"
+        label.textAlignment = .center
+        label.numberOfLines = 2
+        label.font = .systemFont(ofSize: 24, weight: .medium)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var subtitleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Please create your password to continue"
+        label.textAlignment = .center
+        label.numberOfLines = 2
+        label.font = .systemFont(ofSize: 16, weight: .regular)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var passwordField: UITextField = {
         let field = UITextField()
         field.autocorrectionType = .no
         field.autocapitalizationType = .none
@@ -51,7 +71,7 @@ class PasswordViewController: UIViewController {
         return field
     }()
 
-    private let loginButton: UIButton = {
+    private lazy var loginButton: UIButton = {
         let button = UIButton()
         button.setTitle("Continue", for: .normal)
         button.setTitleColor(.white, for: .normal)
@@ -72,6 +92,8 @@ class PasswordViewController: UIViewController {
 
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
+        view.addSubview(titleLabel)
+        view.addSubview(subtitleLabel)
         view.addSubview(passwordField)
         view.addSubview(loginButton)
         loginButton.addTarget(self, action: #selector(didTapLoginButton), for: .touchUpInside)
@@ -85,10 +107,10 @@ class PasswordViewController: UIViewController {
         switch controllerType {
 
         case .createPassword:
-            self.title = "Create Password"
+            subtitleLabel.text = "Please create your password to continue"
             loginButton.setTitle("Create Password", for: .normal)
         case .signIn:
-            self.title = "Sign In"
+            subtitleLabel.text = "Please enter your password"
             loginButton.setTitle("Sign In", for: .normal)
         }
     }
@@ -97,7 +119,16 @@ class PasswordViewController: UIViewController {
         let safeArea = view.safeAreaLayoutGuide
 
         NSLayoutConstraint.activate([
-            passwordField.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 50),
+            
+            titleLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 90),
+            titleLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 25),
+            titleLabel.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -25),
+            
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 30),
+            subtitleLabel.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 16),
+            subtitleLabel.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -16),
+            
+            passwordField.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 120),
             passwordField.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 16),
             passwordField.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -16),
             passwordField.heightAnchor.constraint(equalToConstant: 40),
@@ -127,6 +158,7 @@ class PasswordViewController: UIViewController {
             if newPassword == "" {
                 newPassword = input
                 passwordField.text = ""
+                subtitleLabel.text = "Please enter your password"
                 loginButton.setTitle("Confirm Password", for: .normal)
             } else {
                 if input == newPassword {

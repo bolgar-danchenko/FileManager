@@ -186,34 +186,38 @@ extension DocumentsViewController: UITableViewDataSource, UITableViewDelegate {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "Cell")
         cell.textLabel?.textColor = .black
         cell.textLabel?.text = "\(self.files[indexPath.row].lastPathComponent)"
-
+        
         do {
-            let fileType = try FileManager.default.attributesOfItem(atPath: "\(self.files[indexPath.row].path)")[FileAttributeKey.type]
-
-            let fileSize = try FileManager.default.attributesOfItem(atPath: "\(self.files[indexPath.row].path)")[FileAttributeKey.size] as? UInt64
+            let filePath = "\(self.files[indexPath.row].path)"
+            
+            let fileType = try FileManager.default.attributesOfItem(atPath: filePath)[FileAttributeKey.type]
 
             if fileType as! FileAttributeType == FileAttributeType.typeDirectory {
                 cell.accessoryType = .disclosureIndicator
+                cell.imageView?.image = UIImage(systemName: "folder")
+                cell.detailTextLabel?.text = fileManagerService.sizeOfFolder(filePath)
             } else {
                 cell.accessoryType = .none
-            }
+                cell.imageView?.image = UIImage(systemName: "photo")
+                
+                if let fileUrl = URL(string: files[indexPath.row].path) {
 
-            if UserDefaults.standard.bool(forKey: "fileSize") {
-                cell.detailTextLabel?.text = "\(ByteCountFormatter.string(fromByteCount: Int64(fileSize ?? 0), countStyle: .file))"
-            } else {
-                cell.detailTextLabel?.text = nil
+                    let fileSizeString = fileUrl.fileSizeString
+                    
+                    if UserDefaults.standard.bool(forKey: "fileSize") {
+                        cell.detailTextLabel?.text = fileSizeString
+                    } else {
+                        cell.detailTextLabel?.text = nil
+                    }
+                }
             }
-
         } catch {
             print(error.localizedDescription)
         }
         return cell
     }
 
-    func tableView(
-        _ tableView: UITableView,
-        didSelectRowAt indexPath: IndexPath
-    ) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         do {
             let fileType = try FileManager.default.attributesOfItem(atPath: "\(self.files[indexPath.row].path)")[FileAttributeKey.type]
             if fileType as! FileAttributeType == FileAttributeType.typeDirectory {
@@ -253,14 +257,17 @@ extension DocumentsViewController: UITableViewDataSource, UITableViewDelegate {
 extension DocumentsViewController: UIImagePickerControllerDelegate {
 
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        let image = info[.imageURL] as! URL
-        self.dismiss(animated: true, completion: nil)
-        fileManagerService.createFile(
-            currentDirectory: rootURL,
-            newFile: image
-        )
-        files = fileManagerService.contentsOfDirectory(currentDirectory: rootURL)
-        self.sortFiles()
-        self.listOfFiles.reloadData()
+        
+        let imageURL = info[.imageURL] as! URL
+        let originalImage = info[.originalImage] as! UIImage
+        
+        self.dismiss(animated: true) { [weak self] in
+            guard let strongSelf = self else { return }
+            strongSelf.fileManagerService.createFile(currentDirectory: strongSelf.rootURL, newFile: imageURL, image: originalImage)
+            strongSelf.files = strongSelf.fileManagerService.contentsOfDirectory(currentDirectory: strongSelf.rootURL)
+            strongSelf.self.sortFiles()
+            strongSelf.self.listOfFiles.reloadData()
+        }
+        
     }
 }
