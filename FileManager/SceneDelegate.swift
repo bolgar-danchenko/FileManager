@@ -20,15 +20,59 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         guard let windowScene = (scene as? UIWindowScene) else { return }
 
-        let window = UIWindow(windowScene: windowScene)
+        window = UIWindow(frame: windowScene.coordinateSpace.bounds)
+        window?.windowScene = windowScene
+        window?.rootViewController = createTabBarController()
+        window?.makeKeyAndVisible()
+    }
 
-        let navigationController = UINavigationController(rootViewController: DocumentsViewController(
-            rootURL: getURL(),
-            directoryTitle: getURL().lastPathComponent
-        ))
-        self.window = window
-        window.rootViewController = navigationController
-        window.makeKeyAndVisible()
+    private enum TabItemType {
+        case documents
+        case settings
+
+        var title: String {
+            switch self {
+            case .documents:
+                return "Documents"
+            case .settings:
+                return "Settings"
+            }
+        }
+
+        var tabBarItem: UITabBarItem {
+            switch self {
+            case .documents:
+                return UITabBarItem(title: "Documents",
+                                    image: UIImage(systemName: "doc"),
+                                    tag: 0)
+            case .settings:
+                return UITabBarItem(title: "Settings", image: UIImage(systemName: "gearshape"), tag: 1)
+            }
+        }
+    }
+
+    private func createNavController(for tabItemType: TabItemType) -> UINavigationController {
+        let vc: UIViewController
+        switch tabItemType {
+        case .documents:
+            vc = DocumentsViewController(rootURL: getURL(),
+                                         directoryTitle: getURL().lastPathComponent)
+        case .settings:
+            vc = SettingsViewController()
+        }
+        vc.title = tabItemType.title
+        vc.tabBarItem = tabItemType.tabBarItem
+        return UINavigationController(rootViewController: vc)
+    }
+
+    private func createTabBarController() -> UITabBarController {
+        let controller = UITabBarController()
+        UITabBar.appearance().backgroundColor = .systemGray6
+        controller.viewControllers = [
+            self.createNavController(for: .documents),
+            self.createNavController(for: .settings)
+        ]
+        return controller
     }
 
     func getURL() -> URL {

@@ -7,15 +7,17 @@
 
 import UIKit
 
-class DocumentsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+class DocumentsViewController: UIViewController, UINavigationControllerDelegate {
 
     // MARK: - Properties
+
+    static var isLoggedIn = false
 
     let fileManagerService = FileManagerService()
 
     var rootURL: URL
 
-    var files: [URL] = []
+    public var files: [URL] = []
 
     var directoryTitle: String
 
@@ -56,17 +58,44 @@ class DocumentsViewController: UIViewController, UITableViewDataSource, UITableV
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
         self.title = directoryTitle
         view.backgroundColor = .white
 
         setupNavigationController()
         setupTableView()
 
+        checkAuth()
+
         files = fileManagerService.contentsOfDirectory(currentDirectory: rootURL)
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        sortFiles()
+    }
+
     // MARK: - Setup View
+
+    private func checkAuth() {
+        if DocumentsViewController.isLoggedIn {
+            return
+        } else {
+            let vc = PasswordViewController()
+            let nav = UINavigationController(rootViewController: vc)
+            nav.modalPresentationStyle = .fullScreen
+            present(nav, animated: true)
+        }
+    }
+
+    private func sortFiles() {
+        if UserDefaults.standard.bool(forKey: "sorting") {
+            files = files.sorted(by: { $0.lastPathComponent < $1.lastPathComponent })
+        } else {
+            files = files.sorted(by: { $1.lastPathComponent < $0.lastPathComponent })
+        }
+
+        listOfFiles.reloadData()
+    }
 
     func setupNavigationController() {
         navigationController?.navigationBar.prefersLargeTitles = true
@@ -100,92 +129,6 @@ class DocumentsViewController: UIViewController, UITableViewDataSource, UITableV
         ])
     }
 
-    // MARK: - TableView
-
-    func tableView(
-        _ tableView: UITableView,
-        numberOfRowsInSection section: Int
-    ) -> Int {
-        return files.count
-    }
-
-    func tableView(
-        _ tableView: UITableView,
-        cellForRowAt indexPath: IndexPath
-    ) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(
-            withIdentifier: "Cell",
-            for: indexPath
-        )
-        cell.textLabel?.textColor = .black
-        cell.textLabel?.text = "\(self.files[indexPath.row].lastPathComponent)"
-
-        do {
-            let fileType = try FileManager.default.attributesOfItem(atPath: "\(self.files[indexPath.row].path)")[FileAttributeKey.type]
-            if fileType as! FileAttributeType == FileAttributeType.typeDirectory {
-                cell.accessoryType = .disclosureIndicator
-            } else {
-                cell.accessoryType = .none
-            }
-        } catch {
-            print(error.localizedDescription)
-        }
-        return cell
-    }
-
-    func tableView(
-        _ tableView: UITableView,
-        didSelectRowAt indexPath: IndexPath
-    ) {
-        do {
-            let fileType = try FileManager.default.attributesOfItem(atPath: "\(self.files[indexPath.row].path)")[FileAttributeKey.type]
-            if fileType as! FileAttributeType == FileAttributeType.typeDirectory {
-                guard let path = self.files[indexPath.row].path.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let pathURL = URL(string: path) else {
-                    print("Incorrect URL")
-                    return
-                }
-                let view = DocumentsViewController(rootURL: pathURL, directoryTitle: pathURL.lastPathComponent)
-                navigationController?.pushViewController(view, animated: true)
-            }
-
-        } catch {
-            print(error.localizedDescription)
-        }
-        tableView.deselectRow(at: indexPath, animated: true)
-    }
-
-    func tableView(
-        _ tableView: UITableView,
-        commit editingStyle: UITableViewCell.EditingStyle,
-        forRowAt indexPath: IndexPath
-    ) {
-        if editingStyle == .delete {
-            let url = files[indexPath.row]
-            files.remove(at: indexPath.row)
-            fileManagerService.removeContent(
-                currentDirectory: rootURL,
-                toDelete: url
-            )
-            listOfFiles.deleteRows(
-                at: [indexPath],
-                with: .fade
-            )
-        }
-    }
-
-    // MARK: - Picker Controller
-
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        let image = info[.imageURL] as! URL
-        self.dismiss(animated: true, completion: nil)
-        fileManagerService.createFile(
-            currentDirectory: rootURL,
-            newFile: image
-        )
-        files = fileManagerService.contentsOfDirectory(currentDirectory: rootURL)
-        self.listOfFiles.reloadData()
-    }
-
     // MARK: - Actions
 
     @objc func createDirectory() {
@@ -205,14 +148,15 @@ class DocumentsViewController: UIViewController, UITableViewDataSource, UITableV
             title: "Add",
             style: .default,
             handler: { [self] _ in
-            guard let name = alert.textFields?[0].text else { return }
-            fileManagerService.createDirectory(
-                currentDirectory: rootURL,
-                newDirectoryName: name
-            )
-            files = fileManagerService.contentsOfDirectory(currentDirectory: rootURL)
-            self.listOfFiles.reloadData()
-        }))
+                guard let name = alert.textFields?[0].text else { return }
+                fileManagerService.createDirectory(
+                    currentDirectory: rootURL,
+                    newDirectoryName: name
+                )
+                files = fileManagerService.contentsOfDirectory(currentDirectory: rootURL)
+                self.sortFiles()
+                self.listOfFiles.reloadData()
+            }))
         self.present(
             alert,
             animated: true,
@@ -223,5 +167,107 @@ class DocumentsViewController: UIViewController, UITableViewDataSource, UITableV
     @objc func createFile() {
         picker.delegate = self
         present(picker, animated: true)
+    }
+}
+
+// MARK: - TableView
+
+extension DocumentsViewController: UITableViewDataSource, UITableViewDelegate {
+
+    func tableView(
+        _ tableView: UITableView,
+        numberOfRowsInSection section: Int
+    ) -> Int {
+        return files.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
+        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "Cell")
+        cell.textLabel?.textColor = .black
+        cell.textLabel?.text = "\(self.files[indexPath.row].lastPathComponent)"
+        
+        do {
+            let filePath = "\(self.files[indexPath.row].path)"
+            
+            let fileType = try FileManager.default.attributesOfItem(atPath: filePath)[FileAttributeKey.type]
+
+            if fileType as! FileAttributeType == FileAttributeType.typeDirectory {
+                cell.accessoryType = .disclosureIndicator
+                cell.imageView?.image = UIImage(systemName: "folder")
+                cell.detailTextLabel?.text = fileManagerService.sizeOfFolder(filePath)
+            } else {
+                cell.accessoryType = .none
+                cell.imageView?.image = UIImage(systemName: "photo")
+                
+                if let fileUrl = URL(string: files[indexPath.row].path) {
+
+                    let fileSizeString = fileUrl.fileSizeString
+                    
+                    if UserDefaults.standard.bool(forKey: "fileSize") {
+                        cell.detailTextLabel?.text = fileSizeString
+                    } else {
+                        cell.detailTextLabel?.text = nil
+                    }
+                }
+            }
+        } catch {
+            print(error.localizedDescription)
+        }
+        return cell
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        do {
+            let fileType = try FileManager.default.attributesOfItem(atPath: "\(self.files[indexPath.row].path)")[FileAttributeKey.type]
+            if fileType as! FileAttributeType == FileAttributeType.typeDirectory {
+                guard let path = self.files[indexPath.row].path.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let pathURL = URL(string: path) else {
+                    print("Incorrect URL")
+                    return
+                }
+                let view = DocumentsViewController(rootURL: pathURL, directoryTitle: pathURL.lastPathComponent)
+                navigationController?.pushViewController(view, animated: true)
+            }
+
+        } catch {
+            print(error.localizedDescription)
+        }
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
+
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+
+        if editingStyle == .delete {
+            let url = files[indexPath.row]
+            files.remove(at: indexPath.row)
+            fileManagerService.removeContent(
+                currentDirectory: rootURL,
+                toDelete: url
+            )
+            listOfFiles.deleteRows(
+                at: [indexPath],
+                with: .fade
+            )
+        }
+    }
+}
+
+// MARK: - Picker Controller
+
+extension DocumentsViewController: UIImagePickerControllerDelegate {
+
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        
+        let imageURL = info[.imageURL] as! URL
+        let originalImage = info[.originalImage] as! UIImage
+        
+        self.dismiss(animated: true) { [weak self] in
+            guard let strongSelf = self else { return }
+            strongSelf.fileManagerService.createFile(currentDirectory: strongSelf.rootURL, newFile: imageURL, image: originalImage)
+            strongSelf.files = strongSelf.fileManagerService.contentsOfDirectory(currentDirectory: strongSelf.rootURL)
+            strongSelf.self.sortFiles()
+            strongSelf.self.listOfFiles.reloadData()
+        }
+        
     }
 }
