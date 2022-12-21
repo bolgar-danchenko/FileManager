@@ -13,6 +13,8 @@ class PasswordViewController: UIViewController {
 
     // MARK: - Model
 
+    let authorizationService = LocalAuthorizationService()
+    
     enum ControllerType {
         case createPassword
         case signIn
@@ -80,6 +82,12 @@ class PasswordViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
+    
+    private lazy var biometricsButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
 
 
     // MARK: - Lifecycle
@@ -88,6 +96,24 @@ class PasswordViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .white
         setupSubview()
+        
+//        biometricsButton.isEnabled = authorizationService.canEvaluatePolicy()
+        switch authorizationService.biometricType() {
+        case .faceID:
+            biometricsButton.setImage(UIImage(named: "faceID")?.withTintColor(.systemBlue), for: .normal)
+            biometricsButton.setImage(UIImage(named: "faceID")?.withTintColor(.systemRed), for: .disabled)
+        default:
+            biometricsButton.setImage(UIImage(named: "touchID")?.withTintColor(.systemBlue), for: .normal)
+            biometricsButton.setImage(UIImage(named: "touchID")?.withTintColor(.systemRed), for: .disabled)
+        }
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        let touchBool = authorizationService.canEvaluatePolicy()
+        if touchBool {
+            didTapBiometrics()
+        }
     }
 
     override func viewWillLayoutSubviews() {
@@ -96,7 +122,9 @@ class PasswordViewController: UIViewController {
         view.addSubview(subtitleLabel)
         view.addSubview(passwordField)
         view.addSubview(loginButton)
+        view.addSubview(biometricsButton)
         loginButton.addTarget(self, action: #selector(didTapLoginButton), for: .touchUpInside)
+        biometricsButton.addTarget(self, action: #selector(didTapBiometrics), for: .touchUpInside)
         setupConstraints()
     }
 
@@ -137,6 +165,11 @@ class PasswordViewController: UIViewController {
             loginButton.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 16),
             loginButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -16),
             loginButton.heightAnchor.constraint(equalToConstant: 40),
+            
+            biometricsButton.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 50),
+            biometricsButton.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            biometricsButton.widthAnchor.constraint(equalToConstant: 50),
+            biometricsButton.heightAnchor.constraint(equalToConstant: 50)
 
         ])
     }
@@ -183,6 +216,19 @@ class PasswordViewController: UIViewController {
                 alert.addAction(UIAlertAction(title: "OK", style: .default))
                 present(alert, animated: true)
                 passwordField.text = ""
+            }
+        }
+    }
+    
+    @objc func didTapBiometrics() {
+        authorizationService.authorizeIfPossible { [weak self] message in
+            if let message = message {
+                let alertView = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+                alertView.addAction(UIAlertAction(title: "Dismiss", style: .default))
+                self?.present(alertView, animated: true)
+            } else {
+                DocumentsViewController.isLoggedIn = true
+                self?.dismiss(animated: true)
             }
         }
     }
