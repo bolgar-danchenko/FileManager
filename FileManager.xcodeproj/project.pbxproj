@@ -14,6 +14,7 @@
 		B5AED39329045749001B750C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B5AED39129045749001B750C /* LaunchScreen.storyboard */; };
 		B5AED39C29045762001B750C /* FileManagerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5AED39A2904575F001B750C /* FileManagerService.swift */; };
 		B5AED39D29045762001B750C /* DocumentsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5AED39B29045760001B750C /* DocumentsViewController.swift */; };
+		B5DF959029536D1C001A4282 /* LocalAuthorizationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5DF958F29536D1C001A4282 /* LocalAuthorizationService.swift */; };
 		B5FDBCE1290BAC6C003E4804 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FDBCE0290BAC6C003E4804 /* SettingsViewController.swift */; };
 		B5FDBCE4290BB107003E4804 /* SettingsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FDBCE2290BB107003E4804 /* SettingsTableViewCell.swift */; };
 		B5FDBCE5290BB107003E4804 /* SwitchTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5FDBCE3290BB107003E4804 /* SwitchTableViewCell.swift */; };
@@ -31,6 +32,7 @@
 		B5AED39429045749001B750C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B5AED39A2904575F001B750C /* FileManagerService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileManagerService.swift; sourceTree = "<group>"; };
 		B5AED39B29045760001B750C /* DocumentsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DocumentsViewController.swift; sourceTree = "<group>"; };
+		B5DF958F29536D1C001A4282 /* LocalAuthorizationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAuthorizationService.swift; sourceTree = "<group>"; };
 		B5FDBCE0290BAC6C003E4804 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		B5FDBCE2290BB107003E4804 /* SettingsTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsTableViewCell.swift; sourceTree = "<group>"; };
 		B5FDBCE3290BB107003E4804 /* SwitchTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwitchTableViewCell.swift; sourceTree = "<group>"; };
@@ -53,6 +55,7 @@
 			isa = PBXGroup;
 			children = (
 				B583EBB1290BFEF500C06685 /* KeychainService.swift */,
+				B5DF958F29536D1C001A4282 /* LocalAuthorizationService.swift */,
 				B5FDBCE8290BCA17003E4804 /* PasswordViewController.swift */,
 			);
 			path = Auth;
@@ -191,6 +194,7 @@
 				B5FDBCE4290BB107003E4804 /* SettingsTableViewCell.swift in Sources */,
 				B583EBB2290BFEF500C06685 /* KeychainService.swift in Sources */,
 				B5AED38929045743001B750C /* SceneDelegate.swift in Sources */,
+				B5DF959029536D1C001A4282 /* LocalAuthorizationService.swift in Sources */,
 				B5FDBCE1290BAC6C003E4804 /* SettingsViewController.swift in Sources */,
 				B5AED39C29045762001B750C /* FileManagerService.swift in Sources */,
 			);
@@ -334,6 +338,7 @@
 				DEVELOPMENT_TEAM = J6J4USC39N;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FileManager/Info.plist;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Access required for authentication";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = "";
@@ -362,6 +367,7 @@
 				DEVELOPMENT_TEAM = J6J4USC39N;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FileManager/Info.plist;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Access required for authentication";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = "";
