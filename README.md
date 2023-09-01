@@ -1,14 +1,14 @@
 # FileManager
 
-Homework for Netology lesson "FileManager, UserDefaults, Keychain"
+Homework for the Netology lesson "FileManager, UserDefaults, Keychain":
 
-The app is a simple file manager that allows to add pictures and folders.
-Added files and folders are stored in FileManager.
-Pictures are adding from Image Picker.
+The app is a simple file manager that allows users to add pictures and folders.
+Added files and folders are stored in the FileManager.
+Pictures can be added from the Image Picker.
 
-At the first launch user needs to create a password that will be saved in Keychain. Password can be changed in Settings. Furthermore, it is possible to sign in with Face ID / Touch ID.
+Upon the first launch, the user needs to create a password that will be saved in the Keychain. The password can be changed in Settings. Furthermore, it is possible to sign in with Face ID / Touch ID.
 
-Additional settings allow to order files and folders by name and to show/hide file size. Settings are stored in UserDefaults.
+Additional settings allow users to order files and folders by name and to show/hide file size. These settings are stored in UserDefaults.
 
 ## Skills
 * FileManager
